@@ -41,6 +41,7 @@ import util
 import time
 import search
 
+
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
 
@@ -288,6 +289,8 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.corners_set = set(self.corners)
+        self.cost = 1
 
     def getStartState(self):
         """
@@ -295,14 +298,19 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        start_position = self.startingPosition
+        corners = self.corners
+        start_state = (start_position, corners)
+        return start_state
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # there must be no corners remaining to visit!
+        curr_position, corners_remaining = state
+        return not any(corners_remaining) # python idiom for checking empty tuple
 
     def getSuccessors(self, state):
         """
@@ -325,7 +333,26 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            curr_position, corners_remaining = state
+            x, y = curr_position
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
 
+            if not hitsWall:
+                # We have at least the same remaining corners
+                next_position = (nextx, nexty)
+                next_corners_remaining = tuple(set(corners_remaining))
+                if next_position not in self.corners_set:
+                    pass
+                elif next_position in corners_remaining:
+                    next_corners_remaining = tuple(corner
+                                                   for corner in next_corners_remaining
+                                                   if corner != next_position)
+                successor = ((next_position, next_corners_remaining),
+                             action,
+                             self.cost)
+                successors.append(successor)
         self._expanded += 1 # DO NOT CHANGE
         return successors
 
@@ -360,7 +387,24 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    # naive path to closest corner, then to next, and so on
+    curr_position, corners_remaining = state
+    h = 0
+    corners_to_visit = set(corners_remaining)
+    while corners_to_visit:
+        # find closest corner
+        h_costs = []
+        for corner in corners_to_visit:
+            h_cost = util.manhattanDistance(curr_position, corner)
+            h_costs.append((h_cost, corner))
+        asc_h_costs = sorted(h_costs)  # sort by heuristic cost
+        min_h, closest_corner = asc_h_costs[0]
+        h += min_h
+        curr_position = closest_corner
+        corners_to_visit.remove(closest_corner)
+
+    return h
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -454,7 +498,21 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    # Naively eat the furthest food on the grid
+    # max dist performance > min dist performance
+
+    food_locs = foodGrid.asList()
+    dists = []
+    for food_loc in food_locs:
+        dist_to_food = mazeDistance(position, food_loc, problem.startingGameState)
+        dists.append(dist_to_food)
+
+    h = 0
+    if dists:
+        furthest_food = max(dists)
+        h = furthest_food
+
+    return h
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -485,7 +543,9 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # bfs search to obtain path to closest food dot
+        path = search.breadthFirstSearch(problem)
+        return path
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -521,7 +581,9 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # state must be a food location
+        is_food = self.food[x][y]
+        return is_food
 
 def mazeDistance(point1, point2, gameState):
     """

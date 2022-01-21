@@ -19,6 +19,7 @@ Pacman agents (in searchAgents.py).
 
 import util
 
+
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -72,6 +73,7 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -87,37 +89,84 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    print("Start:", problem.getStartState())
-    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print("Start's successors:",
-          problem.getSuccessors(problem.getStartState()))
-    # Slide 2 of CSE 573P 2: Search
-    # Fringe is a LIFO stack
-    # util.raiseNotDefined()
     path = []
-    fringe = util.Stack() # LIFO stack for the fringe
+    fringe = util.Stack()  # LIFO stack for the fringe
     curr_state = problem.getStartState()
-    fringe.push(curr_state)
+    fringe.push((curr_state, path))
+    visited = set()
 
     while not fringe.isEmpty():
-        next_state = fringe.pop()
-        if next_state in path:
+        s, p = fringe.pop()
+        if s in visited:
             continue
-        path.append(next_state)
-        for successor in problem.getSuccessors(next_state):
-            fringe.push(successor)
+        visited.add(s)
+        # check goal state here!
+        if problem.isGoalState(s):
+            path = p
+            break
+
+        for successor in problem.getSuccessors(s):
+            child, action, step_cost = successor
+            fringe.push((child, p + [action]))
 
     return path
 
+
 def breadthFirstSearch(problem):
+
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    path = []
+    fringe = util.Queue()  # FIFO stack for the fringe
+    curr_state = problem.getStartState()
+    fringe.push((curr_state, path))
+    visited = set()
+
+    while not fringe.isEmpty():
+        s, p = fringe.pop()
+        if s in visited:
+            continue
+
+        visited.add(s)
+
+        if problem.isGoalState(s):
+            path = p
+            break
+
+        for successor in problem.getSuccessors(s):
+            child, action, step_cost = successor
+            fringe.push((child, p + [action]))
+
+    return path
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    path = []
+    fringe = util.PriorityQueue()
+    curr_state = problem.getStartState()
+    fringe.push((curr_state, path), 0)
+    visited = set()
+
+    while not fringe.isEmpty():
+
+        s, p = fringe.pop()
+        if s in visited:
+            continue
+
+        visited.add(s)
+
+        if problem.isGoalState(s):
+            path = p
+            break
+
+        for successor in problem.getSuccessors(s):
+            child, action, step_cost = successor
+            fringe.update((child, p + [action]), problem.getCostOfActions(p) + step_cost)
+
+    return path
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -126,10 +175,37 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    path = []
+    fringe = util.PriorityQueue()
+    curr_state = problem.getStartState()
+    fringe.push((curr_state, path), 0)
+    visited = set()
+
+    while not fringe.isEmpty():
+
+        s, p = fringe.pop()
+        if s in visited:
+            continue
+
+        visited.add(s)
+
+        if problem.isGoalState(s):
+            path = p
+            break
+
+        for successor in problem.getSuccessors(s):
+            child, action, step_cost = successor
+            h_cost = heuristic(child, problem)
+            fringe.update((child,
+                           p + [action]),
+                          problem.getCostOfActions(p) + step_cost + h_cost)
+
+    return path
 
 
 # Abbreviations

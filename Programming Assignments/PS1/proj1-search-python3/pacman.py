@@ -477,6 +477,20 @@ def readCommand( argv ):
     """
     Processes the command used to run pacman from the command line.
     """
+    # set argv to list containing game we want to debug
+    # Finding a fixed food dot using DFS
+    # python pacman.py -l tinyMaze -p SearchAgent -a fn=tinyMazeSearch
+    #argv = ['-l', 'tinyMaze', '-p', 'SearchAgent', '-a', 'fn=tinyMazeSearch']
+    # python pacman.py -l tinyMaze -p SearchAgent
+    #argv = ['-l', 'tinyMaze', '-p', 'SearchAgent']
+    #python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs
+    # argv = ['-l', 'mediumMaze', '-p', 'SearchAgent', '-a', 'fn=ucs']
+    # python pacman.py - l tinyCorners - p SearchAgent - a fn = bfs, prob = CornersProblem
+    # argv = ['-l', 'tinyCorners', '-p', 'SearchAgent', '-a', 'fn=bfs,prob=CornersProblem']
+    # python pacman.py -l bigSearch -p ClosestDotSearchAgent -z .5
+    #argv = ['-l', 'bigSearch', '-p', 'ClosestDotSearchAgent', '-z', '.5']
+    #print(argv)
+
     from optparse import OptionParser
     usageStr = """
     USAGE:      python pacman.py <options>
