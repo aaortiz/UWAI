@@ -505,6 +505,8 @@ def readCommand(argv):
     """
     Processes the command used to run pacman from the command line.
     """
+    # python pacman.py -p ReflexAgent -l testClassic
+    argv = ['-p', 'ReflexAgent', '-l', 'testClassic']
     from optparse import OptionParser
     usageStr = """
     USAGE:      python pacman.py <options>

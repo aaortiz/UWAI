@@ -74,7 +74,89 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        import math
+        pos_inf = math.inf
+        neg_inf = -math.inf
+
+        # Check terminal states: Goal state and fail states (eaten by ghost)
+        if successorGameState.isWin():
+            return pos_inf
+        elif successorGameState.isLose():
+            return neg_inf
+
+        currPacPosition = currentGameState.getPacmanPosition()
+        currGhostPositions = currentGameState.getGhostPositions()
+        currCapsulePositions = currentGameState.getCapsules()
+        currFoodPositions = currentGameState.getFood().asList()
+
+        newFoodPositions = newFood.asList()
+        newGhostPositions = successorGameState.getGhostPositions()
+
+        score = -(len(newFoodPositions) + len(currCapsulePositions))
+        # Rate a move from -100 to 100
+
+        # Food
+        # Less food is good
+        if len(newFoodPositions) < len(currFoodPositions):
+            score += 100
+
+        # Same amount of food is bad
+        if len(newFoodPositions) == len(currFoodPositions):
+            score -= 50
+
+        # Closer to food is good
+        dists_to_new_food = [util.manhattanDistance(newPos, fp)
+                             for fp in newFoodPositions]
+
+        dists_to_curr_food = [util.manhattanDistance(newPos, fp)
+                              for fp in currFoodPositions]
+
+        if dists_to_new_food:
+            score += (5/max(min(dists_to_new_food), 1))
+
+        # incentivize food at all distances
+        if dists_to_curr_food:
+            closest_food_dist = min(dists_to_curr_food)
+            avg_food_dist = sum(dists_to_curr_food) / len(dists_to_curr_food)
+            furthest_food_dist = max(dists_to_curr_food)
+            score += 10 / max(closest_food_dist, 1)
+            score += 5 / max(avg_food_dist, 1)
+            score += 2.5 / max(furthest_food_dist, 1)
+
+        # Capsules
+        # Eating a capsule is very good
+        if newPos in currCapsulePositions:
+            score += 100
+
+        # closer to capsule is good
+        capsuleDists = [util.manhattanDistance(newPos, cap)
+                        for cap in currCapsulePositions]
+        if capsuleDists:
+            score += 5 / max(min(capsuleDists), 1)
+
+        # Ghosts
+        # Scared Ghosts is very good
+        score += sum(newScaredTimes)
+
+        # Further from ghosts is good
+        dists_to_new_ghosts = [util.manhattanDistance(newPos, gp)
+                               for gp in newGhostPositions]
+
+        dists_to_curr_ghosts = [util.manhattanDistance(currPacPosition, gp)
+                               for gp in currGhostPositions]
+
+        if sum(dists_to_new_ghosts) > sum(dists_to_curr_ghosts):
+            score += (5/sum(dists_to_new_ghosts))
+
+        score -= 50 * min(dists_to_curr_ghosts)
+
+        # # Bias to explore
+        # if currPacPosition != newPos:
+        #     score += 25
+        # elif currPacPosition == newPos:
+        #     score -= 25
+
+        return score
 
 def scoreEvaluationFunction(currentGameState):
     """
