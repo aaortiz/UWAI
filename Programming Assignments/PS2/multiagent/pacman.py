@@ -225,7 +225,6 @@ class GameState:
     #             Helper methods:               #
     # You shouldn't need to call these directly #
     #############################################
-
     def __init__(self, prevState=None):
         """
         Generates a new state by copying information from its predecessor.
@@ -506,7 +505,7 @@ def readCommand(argv):
     Processes the command used to run pacman from the command line.
     """
     # python pacman.py -p ReflexAgent -l testClassic
-    argv = ['-p', 'ReflexAgent', '-l', 'testClassic']
+    #argv = ['-p', 'ReflexAgent', '-l', 'testClassic']
     from optparse import OptionParser
     usageStr = """
     USAGE:      python pacman.py <options>

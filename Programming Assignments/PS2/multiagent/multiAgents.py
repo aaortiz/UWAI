@@ -93,7 +93,6 @@ class ReflexAgent(Agent):
         newGhostPositions = successorGameState.getGhostPositions()
 
         score = -(len(newFoodPositions) + len(currCapsulePositions))
-        # Rate a move from -100 to 100
 
         # Food
         # Less food is good
