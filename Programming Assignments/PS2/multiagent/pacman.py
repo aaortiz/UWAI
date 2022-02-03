@@ -506,6 +506,7 @@ def readCommand(argv):
     """
     # python pacman.py -p ReflexAgent -l testClassic
     #argv = ['-p', 'ReflexAgent', '-l', 'testClassic']
+    argv = ['-p', 'MinimaxAgent', '-l', 'minimaxClassic', '-a', 'depth=4']
     from optparse import OptionParser
     usageStr = """
     USAGE:      python pacman.py <options>

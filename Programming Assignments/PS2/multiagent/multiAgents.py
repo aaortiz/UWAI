@@ -18,6 +18,8 @@ import random, util
 
 from game import Agent
 
+import math
+
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -187,6 +189,7 @@ class MultiAgentSearchAgent(Agent):
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
 
+
 class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)
@@ -216,7 +219,65 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        minimax_action, __ = self.minimaxDispatch(gameState)
+        return minimax_action
+
+    def minimaxDispatch(self, gameState):
+
+        currdepth = 0
+        minimax_action, minimax_score = self.maxAgentActionValue(gameState,
+                                                                 currdepth)
+
+        return minimax_action, minimax_score
+
+    def maxAgentActionValue(self, gameState, currdepth):
+
+        if gameState.isWin() or gameState.isLose() or self.depth == currdepth:
+            action = "None"
+            score = self.evaluationFunction(gameState)
+            return action, score
+
+        max_score, actions = -math.inf, gameState.getLegalActions(0)
+
+        for action in actions:
+            next_state = gameState.generateSuccessor(0, action)
+            min_action, min_score = self.minAgentActionValue(next_state,
+                                                             currdepth,
+                                                             1) # 1 represents first ghost
+
+            if max_score < min_score:
+                max_score = min_score
+                max_action = action
+
+        return max_action, max_score
+
+    def minAgentActionValue(self, gameState, currdepth, agent_idx):
+
+        num_agents = gameState.getNumAgents()
+
+        if agent_idx >= num_agents:
+            next_depth = currdepth + 1
+            return self.maxAgentActionValue(gameState, next_depth)
+
+        if gameState.isWin() or gameState.isLose() or self.depth == currdepth:
+            action = "None"
+            score = self.evaluationFunction(gameState)
+            return action, score
+
+        min_score, min_actions = math.inf, gameState.getLegalActions(agent_idx)
+
+        for a in min_actions:
+            next_state = gameState.generateSuccessor(agent_idx, a)
+            next_agent_idx = agent_idx + 1
+            curr_min_a, curr_min_s = self.minAgentActionValue(next_state,
+                                                              currdepth,
+                                                              next_agent_idx)
+
+            if curr_min_s < min_score:
+                min_score = curr_min_s
+                min_action = a
+
+        return min_action, min_score
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
