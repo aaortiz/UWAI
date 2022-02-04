@@ -384,7 +384,61 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        expectimax_action, __ = self.expectimaxDispatch(gameState)
+        return expectimax_action
+
+    def expectimaxDispatch(self, gameState):
+
+        currdepth = 0
+        expectimax_action, expectimax_score = self.maxAgentActionValue(gameState,
+                                                                       currdepth)
+        return expectimax_action, expectimax_score
+
+    def maxAgentActionValue(self, gameState, currdepth):
+
+        if gameState.isWin() or gameState.isLose() or self.depth == currdepth:
+            action = "None"
+            score = self.evaluationFunction(gameState)
+            return action, score
+
+        max_action, max_score, actions = "Stop", -math.inf, gameState.getLegalActions(0)
+
+        for action in actions:
+            next_state = gameState.generateSuccessor(0, action)
+            exp_score = self.expectedActionValue(next_state, currdepth, 1)  # 1 represents first ghost
+
+            if max_score < exp_score:
+                max_score = exp_score
+                max_action = action
+
+        return max_action, max_score
+
+    def expectedActionValue(self, gameState, currdepth, agent_idx):
+
+        num_agents = gameState.getNumAgents()
+
+        if agent_idx >= num_agents:
+            next_depth = currdepth + 1
+            __, max_score = self.maxAgentActionValue(gameState, next_depth)
+            return max_score
+
+        if gameState.isWin() or gameState.isLose() or self.depth == currdepth:
+            score = self.evaluationFunction(gameState)
+            return score
+
+        exp_score, exp_actions = 0, gameState.getLegalActions(agent_idx)
+        prob = 1/len(exp_actions)
+        for a in exp_actions:
+            next_state = gameState.generateSuccessor(agent_idx, a)
+            next_agent_idx = agent_idx + 1
+            curr_exp_s = self.expectedActionValue(next_state,
+                                                  currdepth,
+                                                  next_agent_idx)
+            curr_action_expectation = curr_exp_s * prob
+            exp_score += curr_action_expectation
+
+        return exp_score
+
 
 def betterEvaluationFunction(currentGameState):
     """
