@@ -447,8 +447,57 @@ def betterEvaluationFunction(currentGameState):
 
     DESCRIPTION: <write something here so we know what you did>
     """
+
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    import math
+    pos_inf = math.inf
+    neg_inf = -math.inf
+
+    # Check terminal states: Goal state and fail states (eaten by ghost)
+    if currentGameState.isWin():
+        return pos_inf
+    elif currentGameState.isLose():
+        return neg_inf
+
+    currPacPosition = currentGameState.getPacmanPosition()
+    currGhostStates = currentGameState.getGhostStates()
+    currCapsulePositions = currentGameState.getCapsules()
+    currFoodPositions = currentGameState.getFood().asList()
+    score = currentGameState.getScore()
+    currScaredGhosts = [gs for gs in currGhostStates if gs.scaredTimer]
+
+    # Food
+    # Closer to food is good
+    dists_to_curr_food = [util.manhattanDistance(currPacPosition, fp)
+                          for fp in currFoodPositions]
+
+    # incentivize food at all distances
+    if dists_to_curr_food:
+        closest_food_dist = min(dists_to_curr_food)
+        avg_food_dist = sum(dists_to_curr_food) / len(dists_to_curr_food)
+        furthest_food_dist = max(dists_to_curr_food)
+        score += 10 / max(closest_food_dist, 1)
+        score += 5 / max(avg_food_dist, 1)
+        score += 2.5 / max(furthest_food_dist, 1)
+
+    # closer to capsule is good
+    capsuleDists = [util.manhattanDistance(currPacPosition, cap)
+                    for cap in currCapsulePositions]
+    if capsuleDists:
+        score += 5 / max(min(capsuleDists), 1)
+
+    # Ghosts
+    # Scared Ghosts is very good
+    score += sum([gs.scaredTimer for gs in currScaredGhosts])
+
+    # Further away from ghosts the better
+    dists_to_curr_ghosts = [util.manhattanDistance(currPacPosition, gs.getPosition())
+                            for gs in currGhostStates]
+
+    score -= 50 * min(dists_to_curr_ghosts)
+
+    return score
+
 
 # Abbreviation
 better = betterEvaluationFunction
