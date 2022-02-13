@@ -202,3 +202,86 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
 
+        # Compute Predecessors
+        predecessors = dict()
+        states = self.mdp.getStates()
+        for state in states:
+
+            if self.mdp.isTerminal(state):
+                continue
+            # Terminal state has no actions
+            actions = self.mdp.getPossibleActions(state)
+            for action in actions:
+                transitions = self.mdp.getTransitionStatesAndProbs(state,
+                                                                   action)
+                for next_state, prob in transitions:
+                    if prob:
+                        if next_state in predecessors:
+                            predecessors[next_state].add(state)
+                        else:
+                            predecessors[next_state] = {state}
+
+        # Initialize an empty priority queue
+        pq = util.PriorityQueue()
+
+        # Populate priority queue with max diff between Q values of each state
+        # and all its predecessors
+        for state in states:
+
+            if self.mdp.isTerminal(state):
+                continue
+
+            actions = self.mdp.getPossibleActions(state)
+            action_q_pairs = []
+
+            for action in actions:
+                Q_a = self.computeQValueFromValues(state, action)
+                action_q_pairs.append((Q_a, action))
+
+            best_Q = sorted(action_q_pairs,
+                            key=lambda x: x[0], reverse=True)[0][0]
+            diff = abs(self.values[state] - best_Q)
+            pq.update(state, -diff) # push or update?
+            # else:
+            #     continue
+
+        # Iterate
+        for i in range(self.iterations):
+
+            if pq.isEmpty():
+                break
+
+            state = pq.pop()
+            if not self.mdp.isTerminal(state):
+                # update state value
+                actions = self.mdp.getPossibleActions(state)
+                action_q_pairs = []
+                for action in actions:
+                    Q_a = self.computeQValueFromValues(state, action)
+                    action_q_pairs.append((Q_a, action))
+
+                best_Q = sorted(action_q_pairs,
+                                key=lambda x: x[0], reverse=True)[0][0]
+                self.values[state] = best_Q
+
+            for pred in predecessors[state]:
+
+                # verify if necessary code here
+                if self.mdp.isTerminal(pred):
+                    continue
+
+                curr_predQ = self.values[pred]
+
+                actions = self.mdp.getPossibleActions(pred)
+                action_q_pairs = []
+
+                for action in actions:
+                    Q_a = self.computeQValueFromValues(pred, action)
+                    action_q_pairs.append((Q_a, action))
+
+                best_Q = sorted(action_q_pairs,
+                                key=lambda x: x[0], reverse=True)[0][0]
+                diff = abs(curr_predQ - best_Q)
+
+                if diff > self.theta:
+                    pq.update(pred, -diff)

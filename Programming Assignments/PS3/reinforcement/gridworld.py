@@ -449,6 +449,8 @@ if __name__ == '__main__':
     # import sys
     # argv = ['-a', 'value', '-i', '100', '-k', '10']
     # #argv = ['-a', 'value', '-i', '5']
+    # -a priosweepvalue -i 1000
+    # argv = ['-a', 'priosweepvalue', '-i', '1000']
     # sys.argv.extend(argv)
     opts = parseOptions()
 
