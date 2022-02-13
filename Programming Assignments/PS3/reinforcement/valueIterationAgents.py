@@ -62,6 +62,39 @@ class ValueIterationAgent(ValueEstimationAgent):
     def runValueIteration(self):
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
+        terminal_state = None
+        for i in range(self.iterations):
+            curr_values = util.Counter()
+            for curr_state in self.mdp.getStates():
+                # update each state
+                action = self.getAction(curr_state)
+                if action is not terminal_state:
+                    curr_values[curr_state] = self.getQValue(curr_state,
+                                                             action)
+
+            self.values = curr_values
+        # # Vk+1(s) = max over a (sum over s' (Q*))
+        #
+        # start_s = self.mdp.getStartState()
+        # curr_state = start_s
+        # for i in range(self.iterations):
+        #     # value iteration Vk+1 for the ith iteration
+        #     actions = self.mdp.getPossibleActions(curr_state)
+        #     curr_best_action = None # may need to chagne to 'None'
+        #     curr_best_q = -float("inf")
+        #     Q_stars = []
+        #     for action in actions:
+        #         # may need to return the next state here too
+        #         Q_star = self.computeQValueFromValues(curr_state, action)
+        #         # for each action get transition states
+        #         # (nextState, prob)
+        #         # Ts = self.mdp.getTransitionStatesAndProbs(curr_state, action)
+        #         # R = self.mdp.getReward(curr_state, action, )
+        #         Q_stars.append((Q_star, action))
+        #     self.values[curr_state] = max(Q_stars) # Q_stars tuple with (Q*, next_state
+        #     # self.update update(self, state, action, nextState, reward)
+        #
+        #     pass
 
 
     def getValue(self, state):
@@ -77,7 +110,17 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Q*(s,a) = sum over s' ( T(s, a, s')[R(s,a,s') + gamma V*(s')] )
+
+        Ts = self.mdp.getTransitionStatesAndProbs(state, action)
+        Qs = []
+        for next_state, prob in Ts:
+            r = self.mdp.getReward(state, action, next_state)
+            discounted_value = self.discount * self.getValue(next_state)
+            curr_q = prob*(r + discounted_value)
+            Qs.append(curr_q)
+        Q_star = sum(Qs)
+        return Q_star
 
     def computeActionFromValues(self, state):
         """
@@ -89,7 +132,17 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # V*(s) = max over a ( Q*)
+        if not self.mdp.isTerminal(state):
+            actions = self.mdp.getPossibleActions(state)
+            action_q_pairs = []
+            for action in actions:
+                Q_a = self.computeQValueFromValues(state, action)
+                action_q_pairs.append((Q_a, action))
+        else:
+            return None
+        best_action = sorted(action_q_pairs, key=lambda x:x[0], reverse=True)[0][1]
+        return best_action
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)

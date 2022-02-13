@@ -446,7 +446,10 @@ def parseOptions():
 
 
 if __name__ == '__main__':
-
+    # import sys
+    # argv = ['-a', 'value', '-i', '100', '-k', '10']
+    # #argv = ['-a', 'value', '-i', '5']
+    # sys.argv.extend(argv)
     opts = parseOptions()
 
     ###########################
