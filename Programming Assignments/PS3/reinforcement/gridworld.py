@@ -451,6 +451,8 @@ if __name__ == '__main__':
     # #argv = ['-a', 'value', '-i', '5']
     # -a priosweepvalue -i 1000
     # argv = ['-a', 'priosweepvalue', '-i', '1000']
+    # Q6 Q-Learning: python gridworld.py -a q -k 5 -m
+    # argv = ['-a', 'q', '-k', '5', '-m']
     # sys.argv.extend(argv)
     opts = parseOptions()
 
