@@ -73,29 +73,6 @@ class ValueIterationAgent(ValueEstimationAgent):
                                                              action)
 
             self.values = curr_values
-        # # Vk+1(s) = max over a (sum over s' (Q*))
-        #
-        # start_s = self.mdp.getStartState()
-        # curr_state = start_s
-        # for i in range(self.iterations):
-        #     # value iteration Vk+1 for the ith iteration
-        #     actions = self.mdp.getPossibleActions(curr_state)
-        #     curr_best_action = None # may need to chagne to 'None'
-        #     curr_best_q = -float("inf")
-        #     Q_stars = []
-        #     for action in actions:
-        #         # may need to return the next state here too
-        #         Q_star = self.computeQValueFromValues(curr_state, action)
-        #         # for each action get transition states
-        #         # (nextState, prob)
-        #         # Ts = self.mdp.getTransitionStatesAndProbs(curr_state, action)
-        #         # R = self.mdp.getReward(curr_state, action, )
-        #         Q_stars.append((Q_star, action))
-        #     self.values[curr_state] = max(Q_stars) # Q_stars tuple with (Q*, next_state
-        #     # self.update update(self, state, action, nextState, reward)
-        #
-        #     pass
-
 
     def getValue(self, state):
         """
@@ -183,6 +160,27 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        states = self.mdp.getStates()
+
+        for i in range(self.iterations):
+            # wrap count if self.iterations > num states
+            state_idx = i % len(states)
+            curr_state = states[state_idx]
+
+            if self.mdp.isTerminal(curr_state):
+                continue
+
+            actions = self.mdp.getPossibleActions(curr_state)
+            action_q_pairs = []
+
+            for action in actions:
+                Q_a = self.computeQValueFromValues(curr_state, action)
+                action_q_pairs.append((Q_a, action))
+
+            best_Q = sorted(action_q_pairs,
+                            key=lambda x: x[0], reverse=True)[0][0]
+            self.values[curr_state] = best_Q
+
 
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
     """
