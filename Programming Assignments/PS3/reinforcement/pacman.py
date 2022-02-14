@@ -505,6 +505,8 @@ def readCommand(argv):
     """
     Processes the command used to run pacman from the command line.
     """
+    # Q10 Debug Code
+    # argv = ['-p', 'ApproximateQAgent', '-x', '2000', '-n', '2010', '-l', 'smallGrid']
     from optparse import OptionParser
     usageStr = """
     USAGE:      python pacman.py <options>
