@@ -148,6 +148,14 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        # Architecture
+        self.learning_rate = .1
+        self.w1, self.b1 = nn.Parameter(784, 392), nn.Parameter(1, 392)
+        self.w2, self.b2 = nn.Parameter(392, 196), nn.Parameter(1, 196)
+        self.w3, self.b3 = nn.Parameter(196, 49), nn.Parameter(1, 49)
+        self.w4, self.b4 = nn.Parameter(49, 10), nn.Parameter(1, 10)
+        self.params = [self.w1, self.b1, self.w2, self.b2,
+                       self.w3, self.b3, self.w4, self.b4]
 
     def run(self, x):
         """
@@ -164,6 +172,15 @@ class DigitClassificationModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        # Forward Pass
+        a1 = nn.AddBias(nn.Linear(x, self.w1), self.b1)
+        h1 = nn.ReLU(a1)
+        a2 = nn.AddBias(nn.Linear(h1, self.w2), self.b2)
+        h2 = nn.ReLU(a2)
+        a3 = nn.AddBias(nn.Linear(h2, self.w3), self.b3)
+        h3 = nn.ReLU(a3)
+        out = nn.AddBias(nn.Linear(h3, self.w4), self.b4)
+        return out
 
     def get_loss(self, x, y):
         """
@@ -179,12 +196,31 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        y_pred = self.run(x)
+        return nn.SoftmaxLoss(y_pred, y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        validation_accu_threshold = .975
+        batch_size = 100
+        validation_accu = 0
+        loss = float('inf')
+
+        while validation_accu < validation_accu_threshold:
+
+            for x, y in dataset.iterate_once(batch_size):
+                loss_node = self.get_loss(x, y)
+                grads = nn.gradients(loss_node, self.params)
+                loss = nn.as_scalar(loss_node)  # For debugging
+
+                for i in range(len(self.params)):
+                    self.params[i].update(grads[i], -self.learning_rate)
+
+            validation_accu = dataset.get_validation_accuracy()
+
 
 class LanguageIDModel(object):
     """
@@ -204,6 +240,12 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.learning_rate = .1
+        self.w0, self.b0 = nn.Parameter(self.num_chars, 128), nn.Parameter(1, 128)
+        self.xw1, self.hw1 = nn.Parameter(self.num_chars, 128), nn.Parameter(128, 128)
+        self.b1 = nn.Parameter(1, 128)
+        self.w2, self.b2 = nn.Parameter(128, len(self.languages)), nn.Parameter(1, len(self.languages))
+        self.params = [self.w0, self.b0, self.xw1, self.hw1, self.b1, self.w2, self.b2]
 
     def run(self, xs):
         """
@@ -235,6 +277,16 @@ class LanguageIDModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        # Forward Pass
+        a0 = nn.AddBias(nn.Linear(xs[0], self.w0), self.b0)
+        h0 = nn.ReLU(a0)
+        for char in xs[1:]:
+            # xw1, hw1, b1 shared across all characters in sample xs
+            a_hidden = nn.AddBias(nn.Add(nn.Linear(char, self.xw1),
+                                         nn.Linear(h0, self.hw1)), self.b1)
+            h0 = nn.ReLU(a_hidden)
+        out = nn.AddBias(nn.Linear(h0, self.w2), self.b2)
+        return out
 
     def get_loss(self, xs, y):
         """
@@ -251,9 +303,27 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        y_pred = self.run(xs)
+        return nn.SoftmaxLoss(y_pred, y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        validation_accu_threshold = .85
+        batch_size = 100
+        validation_accu = 0
+        loss = float('inf')
+
+        while validation_accu < validation_accu_threshold:
+
+            for x, y in dataset.iterate_once(batch_size):
+                loss_node = self.get_loss(x, y)
+                grads = nn.gradients(loss_node, self.params)
+                loss = nn.as_scalar(loss_node)  # For debugging
+
+                for i in range(len(self.params)):
+                    self.params[i].update(grads[i], -self.learning_rate)
+
+            validation_accu = dataset.get_validation_accuracy()
